@@ -1,0 +1,10 @@
+session.screen0.toolbar.visible: false
+session.screen0.slit.acceptKdeDockapps: true
+session.screen0.iconbar.mode: AllWindows
+session.screen0.iconbar.alignment: BottomCenter
+session.screen0.workspacewarping: false
+session.screen0.workspaceNames: Fastlink
+session.screen0.focusModel: ClickToFocus
+session.screen0.autoRaise: true
+session.screen0.allowRemoteActions: false
+session.screen0.rootCommand: sh -c "xsetroot -solid rgb:30/35/42; xset -dpms; xset s off"

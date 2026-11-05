@@ -1,0 +1,31 @@
+services:
+  fastlink:
+    image: ghcr.io/xins134/fastlink-docker:latest
+    pull_policy: always
+    container_name: fastlink
+    restart: unless-stopped
+    ports:
+      # Browser UI: http://SERVER_IP:6080/vnc.html
+      - "${FASTLINK_BIND_ADDRESS:-0.0.0.0}:${FASTLINK_WEB_PORT:-6080}:6080"
+      # HTTP and SOCKS5 proxy: SERVER_IP:7890
+      - "${FASTLINK_PROXY_BIND_ADDRESS:-0.0.0.0}:${FASTLINK_PROXY_PORT:-7890}:7890"
+    environment:
+      VNC_PASSWORD: "${VNC_PASSWORD:-fastlink}"
+      SCREEN_WIDTH: "${SCREEN_WIDTH:-1280}"
+      SCREEN_HEIGHT: "${SCREEN_HEIGHT:-800}"
+      SCREEN_DEPTH: "24"
+      TZ: "${TZ:-Asia/Shanghai}"
+    volumes:
+      - fastlink-home:/home/app
+    shm_size: "256mb"
+    mem_limit: "${FASTLINK_MEMORY_LIMIT:-1g}"
+    mem_reservation: "${FASTLINK_MEMORY_RESERVATION:-256m}"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "--output", "/dev/null", "http://127.0.0.1:6080/vnc.html"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+volumes:
+  fastlink-home:

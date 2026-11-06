@@ -12,6 +12,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     dbus-x11 \
     fonts-noto-cjk \
+    gnome-keyring \
     gosu \
     libayatana-appindicator3-1 \
     libgtk-3-0t64 \
@@ -52,7 +53,9 @@ COPY docker/supervisord.conf /etc/supervisor/conf.d/fastlink.conf
 COPY docker/fluxbox-init /etc/skel/.fluxbox/init
 COPY docker/tint2rc /etc/xdg/tint2/tint2rc
 COPY docker/entrypoint.sh /usr/local/bin/fastlink-entrypoint
-RUN chmod 0755 /usr/local/bin/fastlink-entrypoint
+COPY docker/keyring.sh /usr/local/bin/fastlink-keyring
+COPY docker/org.freedesktop.secrets.service /usr/share/dbus-1/services/org.freedesktop.secrets.service
+RUN chmod 0755 /usr/local/bin/fastlink-entrypoint /usr/local/bin/fastlink-keyring
 
 STOPSIGNAL SIGTERM
 ENTRYPOINT ["/usr/local/bin/fastlink-entrypoint"]

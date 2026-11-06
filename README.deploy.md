@@ -17,7 +17,7 @@ printf '%s' '你的GitHub只读Token' | docker login ghcr.io -u 你的GitHub用�
 
 ```bash
 cp .env.example .env
-# 修改 .env 中的 VNC_PASSWORD；它必须恰好为 8 个可打印字符。
+# VNC_PASSWORD 留空，网页桌面免密码进入。
 docker-compose pull
 docker-compose up -d
 docker-compose ps
@@ -29,6 +29,7 @@ Packages 中将该镜像设置为 Public，则可跳过登录步骤。
 ## 3. 使用
 
 - 网页界面：`http://服务器IP:6080/vnc.html?autoconnect=1&resize=remote&path=websockify`
+- 默认不弹出 noVNC 密码和系统钥匙环解锁提示。免密码时应限制 6080 端口访问来源。
 - HTTP/SOCKS5 代理：`服务器IP:7890`
 - 登录 Fastlink、连接节点，设置 Mixed Port 为 `7890` 并开启 Allow LAN。
 - 保持 TUN 关闭；无需 TUN 设备、管理员网络权限或透明代理规则。
@@ -40,8 +41,17 @@ docker-compose pull
 docker-compose up -d
 ```
 
-登录和订阅配置保存在 `fastlink-home` 数据卷，普通更新不会删除。由于未启动
-GNOME Keyring，某些登录凭据可能无法持久保存。
+登录和订阅配置保存在 `fastlink-home` 数据卷，普通更新不会删除。独立钥匙环在
+启动时自动解锁，旧钥匙环文件保持原样；首次切换可能需要重新登录一次，之后新凭据
+可持久保存。自动生成的解锁密钥与钥匙环保存在同一数据卷，应限制该卷访问。
+
+从旧版升级时，将现有 `.env` 中的 `VNC_PASSWORD` 改为空。包含启动脚本变更的新镜像
+构建并发布后，再拉取并重新创建；仅修改本地配置不会更新已发布的镜像：
+
+```bash
+docker-compose pull
+docker-compose up -d --force-recreate
+```
 
 ## 5. 资源与日志
 

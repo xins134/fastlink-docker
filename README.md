@@ -15,18 +15,20 @@ Dockerfile 使用 `fastlinkapp-linux-speed-*-amd64.deb` 通配符自动查找安
 不需要修改 Dockerfile。目录中只能保留一个匹配的 `.deb` 文件。
 
 ```bash
-docker-compose build
-docker-compose up -d
-docker-compose ps
+docker-compose -f docker-compose.local.yml build
+docker-compose -f docker-compose.local.yml up -d
+docker-compose -f docker-compose.local.yml ps
 ```
 
 如果系统使用 Docker Compose v2 插件，也可以把命令换成 `docker compose`。
 
 **界面地址：** `http://服务器IP:6080/vnc.html?autoconnect=1&resize=remote&path=websockify`
 
-浏览器提示输入密码时，默认密码为 `fastlink`。请在使用前修改 `.env` 中的
-`VNC_PASSWORD`，密码必须是 **8 个可打印字符**；修改后执行
-`docker-compose up -d --force-recreate`。
+默认免密码进入网页桌面，`.env` 中的 `VNC_PASSWORD` 留空即可。需要恢复连接密码时，
+将它设为 **8 个可打印字符**，再重新创建容器。免密码时，应通过防火墙限制
+6080 端口的访问来源，或将 `FASTLINK_BIND_ADDRESS` 设为 `127.0.0.1`。
+
+Fastlink 使用独立钥匙环，启动时自动解锁，不再要求手动输入系统钥匙环密码。
 
 ## 配置 HTTP 代理
 
@@ -56,9 +58,11 @@ curl --socks5-hostname 127.0.0.1:7890 https://example.com
 ## 数据与维护
 
 账号、订阅和设置保存在 Compose 命名卷 `fastlink-home` 中，普通重启和重建容器
-不会清除。启动脚本只创建桌面所需的 DBus，不启动或解锁 GNOME Keyring。因此 Fastlink
-可能无法持久保存登录凭据；如果重建或重启后要求重新登录，这是预期行为。默认分辨率
-1280×800、共享内存 256 MB、内存上限 1 GB。内存下限只是预留配置，不会
+不会清除。独立钥匙环及自动生成的解锁密钥保存在
+`/home/app/.local/share/fastlink-keyring`，密钥文件权限为 `0600`，不会输出到日志。
+旧钥匙环文件保持原样；首次切换到此版本可能需要重新登录一次，之后新凭据可持久保存。
+解锁密钥与钥匙环位于同一数据卷，能读取该卷的人也能解锁凭据，因此应限制数据卷访问。
+默认分辨率为 1280×800、共享内存 256 MB、内存上限 1 GB。内存下限只是预留配置，不会
 预先占用等量内存。可以在 `.env` 调整 `SCREEN_WIDTH`、`SCREEN_HEIGHT` 和
 `FASTLINK_MEMORY_LIMIT`；若应用出现 OOM，可将上限提高到 `1536m` 或 `2g`。
 
@@ -71,8 +75,8 @@ docker-compose logs -f --tail=100
 docker-compose up -d --force-recreate
 
 # 替换新版 .deb，或修改 Dockerfile / 启动脚本后重新构建
-docker-compose build --no-cache
-docker-compose up -d
+docker-compose -f docker-compose.local.yml build --no-cache
+docker-compose -f docker-compose.local.yml up -d --force-recreate
 ```
 
 配置不包含 TUN 设备、`NET_ADMIN` 权限或透明代理规则。界面端口为 noVNC 服务，
@@ -85,4 +89,4 @@ docker-compose up -d
 服务器无需存放安装包或本地构建。
 
 服务器使用 [README.deploy.md](README.deploy.md) 的步骤登录 GHCR、拉取镜像并启动。
-`.env` 已被 `.gitignore` 排除，不会把本机的 VNC 密码提交到 GitHub。
+`.env` 已被 `.gitignore` 排除，不会把本机配置提交到 GitHub。

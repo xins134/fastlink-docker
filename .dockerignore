@@ -6,4 +6,5 @@
 README.md
 README.deploy.md
 docker-compose*.yml
+tests
 .DS_Store

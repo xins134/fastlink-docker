@@ -53,9 +53,10 @@ COPY docker/supervisord.conf /etc/supervisor/conf.d/fastlink.conf
 COPY docker/fluxbox-init /etc/skel/.fluxbox/init
 COPY docker/tint2rc /etc/xdg/tint2/tint2rc
 COPY docker/entrypoint.sh /usr/local/bin/fastlink-entrypoint
+COPY docker/sync-package.sh /usr/local/bin/fastlink-sync-package
 COPY docker/keyring.sh /usr/local/bin/fastlink-keyring
 COPY docker/org.freedesktop.secrets.service /usr/share/dbus-1/services/org.freedesktop.secrets.service
-RUN chmod 0755 /usr/local/bin/fastlink-entrypoint /usr/local/bin/fastlink-keyring
+RUN chmod 0755 /usr/local/bin/fastlink-entrypoint /usr/local/bin/fastlink-sync-package /usr/local/bin/fastlink-keyring
 
 STOPSIGNAL SIGTERM
 ENTRYPOINT ["/usr/local/bin/fastlink-entrypoint"]

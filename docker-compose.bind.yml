@@ -1,0 +1,6 @@
+# Optional override: expose the persistent app home as a host directory.
+# Usage: docker-compose -f docker-compose.yml -f docker-compose.bind.yml up -d
+services:
+  fastlink:
+    volumes:
+      - "${FASTLINK_DATA_DIR:-~/.local/share/fastlink-docker}:/home/app"

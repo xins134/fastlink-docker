@@ -19,6 +19,7 @@ services:
       TZ: "${TZ:-Asia/Shanghai}"
     volumes:
       - fastlink-home:/home/app
+      - "${FASTLINK_DOWNLOAD_DIR:-~/Download}:/home/app/Download:ro"
     shm_size: "256mb"
     mem_limit: "${FASTLINK_MEMORY_LIMIT:-1g}"
     mem_reservation: "${FASTLINK_MEMORY_RESERVATION:-256m}"

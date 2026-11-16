@@ -7,6 +7,7 @@ on:
       - "Dockerfile"
       - "*.deb"
       - "docker/**"
+      - "tests/**"
       - ".github/workflows/build-image.yml"
   workflow_dispatch:
 
@@ -20,6 +21,11 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+
+      - name: Check startup package synchronization
+        run: |
+          bash -n docker/entrypoint.sh docker/sync-package.sh docker/keyring.sh
+          python3 -m unittest discover -s tests -v
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3

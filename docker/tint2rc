@@ -1,8 +1,7 @@
-backgrounds = 1
+rounded = 0
 background_color = #20252e 100
 border_width = 0
 border_color = #20252e 0
-rounded = 0
 
 panel_items = TS
 panel_monitor = all
@@ -14,7 +13,7 @@ panel_background_id = 1
 panel_layer = bottom
 panel_dock = 0
 panel_window_name = FastlinkTaskbar
-panel_autohide = 0
+autohide = 0
 panel_shrink = 0
 wm_menu = 1
 

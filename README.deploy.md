@@ -48,6 +48,10 @@ Packages 中将该镜像设置为 Public，则可跳过登录步骤。
 手动重新打开的窗口不会再次关闭。启动前的软件同步和桌面初始化会耗时，不能保证
 宿主机开机后恰好 10 秒关闭。
 
+如果关闭后底部没有图标，且日志出现 `tint2: another systray is running`，是旧版
+Fluxbox 的隐藏工具栏占用了系统托盘。此版本使用 `-no-toolbar` 完全关闭该工具栏，
+将托盘交给 tint2。更新镜像并重新创建容器后生效，账号和订阅仍保留。
+
 首次登录或配置时，在 `.env` 中设置 `FASTLINK_AUTO_CLOSE_DELAY=0`，执行
 `docker-compose up -d --force-recreate` 禁用自动关闭。完成后改回 `10` 并再次执行
 该命令即可恢复；修改环境变量后仅运行 `restart` 不会应用新值。

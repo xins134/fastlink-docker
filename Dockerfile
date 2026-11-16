@@ -25,8 +25,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     tint2 \
     novnc \
     supervisor \
-    tigervnc-standalone-server \
-    tigervnc-tools \
     websockify \
     wmctrl \
     x11vnc \
@@ -52,7 +50,8 @@ RUN groupadd --gid 1000 app \
     && chown -R app:app /home/app /tmp/runtime-app
 
 COPY docker/supervisord.conf /etc/supervisor/conf.d/fastlink.conf
-COPY docker/fluxbox-init /etc/skel/.fluxbox/init
+COPY docker/fluxbox-init /etc/fluxbox/fastlink-init
+COPY docker/fluxbox-overlay /etc/fluxbox/fastlink-overlay
 COPY docker/tint2rc /etc/xdg/tint2/tint2rc
 COPY docker/entrypoint.sh /usr/local/bin/fastlink-entrypoint
 COPY docker/sync-package.sh /usr/local/bin/fastlink-sync-package

@@ -6,6 +6,9 @@
 保留最小化窗口和系统托盘。最小化后点击任务栏图标恢复，关闭窗口后从 Fastlink
 托盘菜单重新打开。
 
+桌面使用 Xvfb 的黑色背景，禁用 Fluxbox 的壁纸设置，不安装 `feh`、Eterm 或重复的
+TigerVNC 服务端；VNC 连接由 x11vnc 提供。
+
 ## 启动
 
 服务器直接拉取镜像的步骤见 [README.deploy.md](README.deploy.md)。

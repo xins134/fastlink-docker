@@ -29,6 +29,11 @@ install -d -m 0700 -o "${APP_USER}" -g "${APP_USER}" \
     "${XDG_RUNTIME_DIR}"
 chown "${APP_USER}:${APP_USER}" "${APP_HOME}"
 
+# Use a writable, fresh Fluxbox config so old home volumes cannot restore a
+# wallpaper. Fluxbox still keeps its auxiliary files in the persistent home.
+install -m 0600 -o "${APP_USER}" -g "${APP_USER}" \
+    /etc/fluxbox/fastlink-init "${XDG_RUNTIME_DIR}/fluxbox-init"
+
 rm -f /tmp/fastlink-x11vnc.pass
 export VNC_AUTH_ARGS="-nopw"
 if [[ -n "${VNC_PASSWORD}" ]]; then

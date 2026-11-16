@@ -143,3 +143,29 @@ docker-compose logs --tail=100 -f
 默认 `1280×800`、共享内存 256 MB、内存上限 1 GB。如果 Fastlink 被 OOM killer
 终止，把 `.env` 的 `FASTLINK_MEMORY_LIMIT` 改为 `1536m` 或 `2g`，然后执行
 `docker-compose up -d`。
+
+### 启动时提示找不到壁纸工具
+
+如果出现 `fbsetbg: I can't find an app to set the wallpaper with`，说明镜像缺少
+Fluxbox 默认背景设置所调用的壁纸工具。运行 Fastlink 无需壁纸功能，本配置通过
+`background: unset` 完全禁用背景设置，不安装 `feh` 或 Eterm。
+
+启动时从镜像模板生成可写的 Fluxbox 配置，并明确加载它，避免已有数据卷中的旧
+桌面配置再次调用壁纸工具。Xvfb 提供黑色背景并关闭屏幕保护，无需额外背景程序。
+VNC 连接只使用现有的 x11vnc，已移除重复的 TigerVNC 服务端和工具包。
+
+服务器拉取模式：先构建并发布包含修复的新镜像，再执行：
+
+```bash
+docker-compose pull
+docker-compose up -d --force-recreate
+```
+
+本地构建模式：
+
+```bash
+docker-compose -f docker-compose.local.yml build
+docker-compose -f docker-compose.local.yml up -d --force-recreate
+```
+
+仅重启旧镜像不会应用此修复。上述更新会保留已有账号、订阅和设置，无需删除数据卷。

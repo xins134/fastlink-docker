@@ -17,7 +17,7 @@ if [[ -n "${VNC_PASSWORD}" && ! "${VNC_PASSWORD}" =~ ^[[:print:]]{8}$ ]]; then
 fi
 
 # Synchronize the host's chosen deb version before any desktop service starts.
-/usr/local/bin/fastlink-sync-package "${APP_HOME}/Download"
+/usr/local/bin/fastlink-sync-package "${APP_HOME}/Downloads"
 
 install -d -m 0755 -o "${APP_USER}" -g "${APP_USER}" "${APP_HOME}"
 install -d -m 0700 -o "${APP_USER}" -g "${APP_USER}" \

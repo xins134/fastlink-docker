@@ -1,7 +1,7 @@
 # Debian 服务器部署（无需构建）
 
 服务器需要 `docker-compose.yml`、`.env.example` 和 Docker。镜像自带 Fastlink 的
-初始版本；宿主机 `~/Download` 映射到容器后，每次启动都会按其中的 deb 同步软件
+初始版本；宿主机 `~/Downloads` 映射到容器后，每次启动都会按其中的 deb 同步软件
 版本，无需运行 `docker-compose build`。
 
 ## 1. 登录私有镜像仓库
@@ -18,8 +18,8 @@ printf '%s' '你的GitHub只读Token' | docker login ghcr.io -u 你的GitHub用�
 
 ```bash
 cp .env.example .env
-mkdir -p "$HOME/Download"
-# 将要运行的 Fastlink deb 放到 ~/Download，只保留一个 Fastlink 包。
+mkdir -p "$HOME/Downloads"
+# 将要运行的 Fastlink deb 放到 ~/Downloads，只保留一个 Fastlink 包。
 # VNC_PASSWORD 留空，网页桌面免密码进入。
 docker-compose pull
 docker-compose up -d
@@ -29,8 +29,8 @@ docker-compose ps
 若镜像保持私有，每台新服务器只需执行一次 `docker login`。若已经在 GitHub
 Packages 中将该镜像设置为 Public，则可跳过登录步骤。
 
-默认目录是 `~/Download`（单数），以只读方式映射到 `/home/app/Download`。
-如果使用 `~/Downloads` 或其他目录，在 `.env` 中设置
+默认目录是 `~/Downloads`，以只读方式映射到 `/home/app/Downloads`。
+如果使用其他目录，在 `.env` 中设置
 `FASTLINK_DOWNLOAD_DIR=/你的绝对路径`，创建该目录后执行 `docker-compose up -d`。
 没有 Fastlink deb 时保留镜像自带的版本。
 
@@ -42,9 +42,19 @@ Packages 中将该镜像设置为 Public，则可跳过登录步骤。
 - 登录 Fastlink、连接节点，设置 Mixed Port 为 `7890` 并开启 Allow LAN。
 - 保持 TUN 关闭；无需 TUN 设备、管理员网络权限或透明代理规则。
 
+每次容器启动时，桌面服务启动后等待约 10 秒，向 Fastlink 发送一次标准 X11 窗口关闭请求，等同点击
+标题栏右上角关闭按钮；主窗口出现较慢时最多额外等待 30 秒。软件须支持关闭窗口
+后继续后台运行，之后可从底部 Fastlink 托盘菜单重新打开。自动关闭只执行一次，
+手动重新打开的窗口不会再次关闭。启动前的软件同步和桌面初始化会耗时，不能保证
+宿主机开机后恰好 10 秒关闭。
+
+首次登录或配置时，在 `.env` 中设置 `FASTLINK_AUTO_CLOSE_DELAY=0`，执行
+`docker-compose up -d --force-recreate` 禁用自动关闭。完成后改回 `10` 并再次执行
+该命令即可恢复；修改环境变量后仅运行 `restart` 不会应用新值。
+
 ## 4. 软件更新、降级与容器环境更新
 
-软件版本由 `~/Download` 中唯一的 Fastlink deb 决定。先将旧 Fastlink deb 移出该目录，
+软件版本由 `~/Downloads` 中唯一的 Fastlink deb 决定。先将旧 Fastlink deb 移出该目录，
 再放入已下载完成的目标 deb，执行：
 
 ```bash
@@ -59,7 +69,7 @@ docker-compose logs --tail=100 fastlink
 依赖已满足时无需联网；若安装失败，会刷新 APT 元数据并重试，新增依赖可能需要联网。
 
 账号、订阅和设置保存在 `fastlink-home` 数据卷，替换 deb、普通重启和重建容器
-都会保留。软件安装在容器内；重建后启动检查会重新应用 `~/Download` 的目标版本。
+都会保留。软件安装在容器内；重建后启动检查会重新应用 `~/Downloads` 的目标版本。
 
 更新 Dockerfile 或启动脚本时，需要先构建并发布新镜像，再执行：
 
@@ -68,9 +78,9 @@ docker-compose pull
 docker-compose up -d --force-recreate
 ```
 
-首次采用 deb 启动同步策略也需要上述步骤。仅修改服务器的 Compose 文件，不能给
-旧镜像增加启动脚本。已移除原来的 `pull_policy: always` 配置；后续软件更新执行
-`restart` 即可，不涉及镜像拉取。
+首次采用 deb 启动同步或延迟关闭窗口功能也需要上述步骤。仅修改服务器的 Compose
+文件或重启旧镜像，不能加入新的启动脚本。已移除原来的 `pull_policy: always`
+配置；后续只更新软件包时执行 `restart` 即可，不涉及镜像拉取。
 
 ## 5. 配置路径与宿主机数据映射
 
@@ -91,7 +101,7 @@ docker-compose exec fastlink find /home/app/.local/share /home/app/.config -maxd
 ```
 
 如果希望配置直接出现在宿主机目录，把 `docker-compose.bind.yml` 一并复制到服务器。
-它将 `~/.local/share/fastlink-docker` 映射到 `/home/app`，同时保留 `~/Download` 的独立
+它将 `~/.local/share/fastlink-docker` 映射到 `/home/app`，同时保留 `~/Downloads` 的独立
 只读映射。在 `.env` 中设置 `FASTLINK_DATA_DIR=/你的绝对路径` 可自定义数据目录。
 
 首次部署、没有旧数据时：
@@ -110,14 +120,14 @@ docker-compose stop fastlink
 mkdir -p "$HOME/.local/share/fastlink-docker"
 FASTLINK_MIGRATION_IMAGE=$(docker inspect --format '{{.Image}}' fastlink)
 docker run --rm --volumes-from fastlink:ro --entrypoint /bin/tar "$FASTLINK_MIGRATION_IMAGE" \
-  --exclude=./Download -C /home/app -cf - . \
+  --exclude=./Downloads -C /home/app -cf - . \
   | tar -xf - -C "$HOME/.local/share/fastlink-docker"
 sudo chown -R 1000:1000 "$HOME/.local/share/fastlink-docker"
 sudo chmod 700 "$HOME/.local/share/fastlink-docker"
 docker-compose -f docker-compose.yml -f docker-compose.bind.yml up -d --force-recreate
 ```
 
-迁移命令排除了单独映射的 `Download`，避免重复复制安装包及其他下载文件。
+迁移命令排除了单独映射的 `Downloads`，避免重复复制安装包及其他下载文件。
 之后使用同一组 `-f` 参数运行 `up`、`restart`、`logs` 等命令；本地构建模式将第一个
 文件换成 `docker-compose.local.yml`。保留旧命名卷作为备份，确认迁移完成后自行处理。
 独立钥匙环启动时自动解锁，解锁密钥与钥匙环必须一起持久化和迁移。

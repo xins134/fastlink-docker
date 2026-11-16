@@ -2,7 +2,7 @@
 set -Eeuo pipefail
 
 readonly APP_PACKAGE=com.flapp.clients.apex
-readonly DOWNLOAD_DIR="${1:-/home/app/Download}"
+readonly DOWNLOAD_DIR="${1:-/home/app/Downloads}"
 
 installed_status=""
 installed_version=""

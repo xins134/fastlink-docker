@@ -10,13 +10,14 @@ services:
       - "${FASTLINK_PROXY_BIND_ADDRESS:-0.0.0.0}:${FASTLINK_PROXY_PORT:-7890}:7890"
     environment:
       VNC_PASSWORD: "${VNC_PASSWORD:-}"
+      FASTLINK_AUTO_CLOSE_DELAY: "${FASTLINK_AUTO_CLOSE_DELAY:-10}"
       SCREEN_WIDTH: "${SCREEN_WIDTH:-1280}"
       SCREEN_HEIGHT: "${SCREEN_HEIGHT:-800}"
       SCREEN_DEPTH: "24"
       TZ: "${TZ:-Asia/Shanghai}"
     volumes:
       - fastlink-home:/home/app
-      - "${FASTLINK_DOWNLOAD_DIR:-~/Download}:/home/app/Download:ro"
+      - "${FASTLINK_DOWNLOAD_DIR:-~/Downloads}:/home/app/Downloads:ro"
     shm_size: "256mb"
     mem_limit: "${FASTLINK_MEMORY_LIMIT:-1g}"
     mem_reservation: "${FASTLINK_MEMORY_RESERVATION:-256m}"

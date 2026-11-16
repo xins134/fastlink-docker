@@ -28,7 +28,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     tigervnc-standalone-server \
     tigervnc-tools \
     websockify \
+    wmctrl \
     x11vnc \
+    x11-utils \
     xauth \
     xdg-utils \
     xvfb \
@@ -55,8 +57,9 @@ COPY docker/tint2rc /etc/xdg/tint2/tint2rc
 COPY docker/entrypoint.sh /usr/local/bin/fastlink-entrypoint
 COPY docker/sync-package.sh /usr/local/bin/fastlink-sync-package
 COPY docker/keyring.sh /usr/local/bin/fastlink-keyring
+COPY docker/auto-close-window.sh /usr/local/bin/fastlink-auto-close-window
 COPY docker/org.freedesktop.secrets.service /usr/share/dbus-1/services/org.freedesktop.secrets.service
-RUN chmod 0755 /usr/local/bin/fastlink-entrypoint /usr/local/bin/fastlink-sync-package /usr/local/bin/fastlink-keyring
+RUN chmod 0755 /usr/local/bin/fastlink-entrypoint /usr/local/bin/fastlink-sync-package /usr/local/bin/fastlink-keyring /usr/local/bin/fastlink-auto-close-window
 
 STOPSIGNAL SIGTERM
 ENTRYPOINT ["/usr/local/bin/fastlink-entrypoint"]

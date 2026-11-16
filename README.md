@@ -3,29 +3,30 @@
 这个安装包是 Flutter 桌面程序，不是原生 Web 服务。本配置使用 Xvfb、x11vnc
 和 noVNC 将轻量图形界面显示在浏览器中，同时映射 Fastlink 的 HTTP/SOCKS5
 代理端口。使用 **Fluxbox + tint2**，不含完整 Ubuntu/XFCE 桌面；底部图标栏
-保留最小化窗口。Fastlink 最小化后，点击底部图标即可恢复。
+保留最小化窗口和系统托盘。最小化后点击任务栏图标恢复，关闭窗口后从 Fastlink
+托盘菜单重新打开。
 
 ## 启动
 
 服务器直接拉取镜像的步骤见 [README.deploy.md](README.deploy.md)。
-容器每次启动都会检查宿主机 `~/Download` 中的 Fastlink deb 包：版本相同就跳过，
+容器每次启动都会检查宿主机 `~/Downloads` 中的 Fastlink deb 包：版本相同就跳过，
 版本不同就安装该包，支持升级和降级，无需为每个软件版本重新构建镜像。
-这里使用的是 **Download（单数）**；可通过 `.env` 中的 `FASTLINK_DOWNLOAD_DIR`
-指定其他绝对路径，例如 `/home/user/Downloads`。
+默认使用 `~/Downloads`；可通过 `.env` 中的 `FASTLINK_DOWNLOAD_DIR`
+指定其他绝对路径，例如 `/srv/fastlink/packages`。
 
 需要本地构建时，把本目录复制到 Debian Docker 主机，执行：
 
 ```bash
 cp .env.example .env
-mkdir -p "$HOME/Download"
-cp fastlinkapp-linux-speed-*-amd64.deb "$HOME/Download/"
+mkdir -p "$HOME/Downloads"
+cp fastlinkapp-linux-speed-*-amd64.deb "$HOME/Downloads/"
 docker-compose -f docker-compose.local.yml build
 docker-compose -f docker-compose.local.yml up -d
 docker-compose -f docker-compose.local.yml ps
 ```
 
 Dockerfile 仍使用仓库根目录中唯一的 `fastlinkapp-linux-speed-*-amd64.deb`
-安装镜像的初始版本；后续软件更新只需替换 `~/Download` 的目标包并重启容器。
+安装镜像的初始版本；后续软件更新只需替换 `~/Downloads` 的目标包并重启容器。
 
 如果系统使用 Docker Compose v2 插件，也可以把命令换成 `docker compose`。
 
@@ -36,6 +37,16 @@ Dockerfile 仍使用仓库根目录中唯一的 `fastlinkapp-linux-speed-*-amd64
 6080 端口的访问来源，或将 `FASTLINK_BIND_ADDRESS` 设为 `127.0.0.1`。
 
 Fastlink 使用独立钥匙环，启动时自动解锁，不再要求手动输入系统钥匙环密码。
+
+每次容器启动时，桌面服务启动后等待约 **10 秒**，向 Fastlink 发送一次窗口关闭请求；主窗口
+出现较慢时最多额外等待 30 秒。请求采用标准 X11 窗口关闭机制，等同点击标题栏
+右上角关闭按钮，由软件处理关闭后的行为，需要 Fastlink 支持关闭窗口后继续后台
+运行。自动关闭只执行一次，之后手动重新打开的窗口不会再次关闭。软件安装和桌面
+初始化会耗时，因此不能保证宿主机开机后恰好 10 秒关闭。
+
+首次登录或配置时，可在 `.env` 中设置 `FASTLINK_AUTO_CLOSE_DELAY=0`，然后执行
+`docker-compose up -d --force-recreate`，禁用自动关闭；完成后改回 `10` 并重新创建
+容器即可恢复。使用本地构建模式时，在命令中加上 `-f docker-compose.local.yml`。
 
 ## 配置 HTTP 代理
 
@@ -88,7 +99,7 @@ Flutter Linux 插件的默认规则，推定应用数据在
 
 ### 软件版本同步
 
-- `~/Download` 只保留一个 Fastlink deb；其他软件的有效 deb 会被忽略。
+- `~/Downloads` 只保留一个 Fastlink deb；其他软件的有效 deb 会被忽略。
 - 根据 deb 的 `Package`、`Version`、`Architecture` 元数据判断，文件名可以修改。
   当前包的 `Version` 为 `7.3.1`，文件名中的时间戳不参与版本比较。
 - 目录为空或没有 Fastlink deb 时，使用当前安装版本。
@@ -97,7 +108,7 @@ Flutter Linux 插件的默认规则，推定应用数据在
   后缀写入目录，完成后再重命名，避免启动时读到未完成的下载。
 - 依赖已满足时直接安装本地包；若安装失败，会刷新 APT 元数据后重试，新增依赖可能
   需要联网。安装失败或安装后的版本验证失败时，不会启动图形界面。
-- `~/Download` 以只读方式映射为 `/home/app/Download`。重建容器后仍会自动安装目标版本。
+- `~/Downloads` 以只读方式映射为 `/home/app/Downloads`。重建容器后仍会自动安装目标版本。
 
 ```bash
 # 查看运行状态和软件日志
@@ -107,7 +118,7 @@ docker-compose logs -f --tail=100
 # 修改 .env 后重新创建
 docker-compose up -d --force-recreate
 
-# ~/Download 中只保留目标 Fastlink deb 后，重启以同步版本
+# ~/Downloads 中只保留目标 Fastlink deb 后，重启以同步版本
 docker-compose restart fastlink
 
 # 修改 Dockerfile / 启动脚本后才需要重新构建本地镜像
@@ -122,10 +133,12 @@ docker-compose -f docker-compose.local.yml up -d --force-recreate
 
 仓库中的 `.github/workflows/build-image.yml` 在 GitHub 的 amd64 主机上构建并发布
 `ghcr.io/xins134/fastlink-docker:latest`。镜像自带一个初始版本；服务器可以通过
-`~/Download` 中的 deb 选择实际运行版本，无需本地构建。
+`~/Downloads` 中的 deb 选择实际运行版本，无需本地构建。
 
-首次使用新的启动检查逻辑，需要构建并发布包含 `docker/sync-package.sh` 的镜像，
-在服务器拉取并重建一次。之后只更新软件包时，替换 deb 并重启即可。
+首次使用 deb 启动同步或延迟关闭窗口功能，需要构建并发布包含对应脚本的新镜像，
+在服务器执行 `docker-compose pull` 和 `docker-compose up -d --force-recreate`。
+仅修改 Compose 文件或重启旧镜像不会加入新功能。之后只更新软件包时，替换 deb
+并重启即可。
 已移除原来的 `pull_policy: always` 配置。软件更新使用 `restart`，无需拉取镜像；
 更新容器环境时仍可以显式执行 `docker-compose pull`。
 

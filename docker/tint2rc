@@ -4,7 +4,7 @@ border_width = 0
 border_color = #20252e 0
 rounded = 0
 
-panel_items = T
+panel_items = TS
 panel_monitor = all
 panel_position = bottom center horizontal
 panel_size = 100% 38
@@ -50,6 +50,12 @@ mouse_middle = close
 mouse_right = none
 mouse_scroll_up = none
 mouse_scroll_down = none
+
+# Keep the application indicator accessible after its main window is closed.
+systray_padding = 4 2 4
+systray_background_id = 0
+systray_sort = ascending
+systray_icon_size = 22
 
 launcher_icon_theme_override = 0
 startup_notifications = 0

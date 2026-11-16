@@ -62,12 +62,12 @@ jobs:
       - name: Check desktop tray
         timeout-minutes: 2
         run: |
-          docker run --rm --entrypoint /usr/bin/gosu \
+          docker run --rm --user app --entrypoint /usr/bin/dbus-run-session \
             --env HOME=/home/app --env USER=app \
             --env SCREEN_WIDTH=1280 --env SCREEN_HEIGHT=800 --env SCREEN_DEPTH=24 \
             --volume "$PWD/tests/check-tray-runtime.py:/tmp/check-tray-runtime.py:ro" \
             "ghcr.io/${GITHUB_REPOSITORY}:latest" \
-            app dbus-run-session -- python3 /tmp/check-tray-runtime.py
+            -- python3 /tmp/check-tray-runtime.py
 
       - name: Publish amd64 image
         env:

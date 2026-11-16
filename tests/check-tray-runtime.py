@@ -55,7 +55,7 @@ def main():
     with tempfile.TemporaryDirectory(prefix="fastlink-tray-check-") as directory:
         try:
             if os.geteuid() != pwd.getpwnam("app").pw_uid:
-                raise RuntimeError("Run this check with gosu app")
+                raise RuntimeError("Run this check as app")
             if not os.environ.get("DBUS_SESSION_BUS_ADDRESS"):
                 raise RuntimeError("Run this check under dbus-run-session")
 
